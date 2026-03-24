@@ -1,0 +1,1187 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TugWar Tech — Painel do Professor</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow:wght@400;600;700;900&family=Barlow+Condensed:wght@700;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --blue: #1a6cff;
+    --blue-dark: #0f47b3;
+    --blue-glow: rgba(26,108,255,0.4);
+    --red: #ff1a2e;
+    --red-dark: #b30f1f;
+    --red-glow: rgba(255,26,46,0.4);
+    --bg: #08080f;
+    --surface: #111120;
+    --surface2: #1a1a2e;
+    --text: #f0f0ff;
+    --muted: #666688;
+    --gold: #ffd700;
+    --rope: #c8962a;
+    --rope-dark: #8a620a;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Barlow', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* BG grid */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(26,108,255,0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(26,108,255,0.04) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* =================== LOGIN =================== */
+  #loginScreen {
+    position: fixed; inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    z-index: 100;
+    background: var(--bg);
+  }
+  .login-card {
+    background: var(--surface);
+    border: 1px solid #2a2a4a;
+    border-radius: 20px;
+    padding: 50px 40px;
+    width: 100%; max-width: 420px;
+    text-align: center;
+    box-shadow: 0 0 60px rgba(26,108,255,0.15);
+    position: relative;
+    z-index: 1;
+  }
+  .login-logo {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 3rem;
+    letter-spacing: 3px;
+    background: linear-gradient(135deg, var(--blue), var(--red));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 6px;
+  }
+  .login-sub {
+    color: var(--muted);
+    font-size: 0.85rem;
+    margin-bottom: 36px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+  }
+  .login-card input {
+    width: 100%;
+    background: var(--surface2);
+    border: 1px solid #2a2a4a;
+    border-radius: 10px;
+    padding: 14px 18px;
+    color: var(--text);
+    font-family: 'Barlow', sans-serif;
+    font-size: 1rem;
+    margin-bottom: 14px;
+    outline: none;
+    transition: border-color .2s, box-shadow .2s;
+  }
+  .login-card input:focus {
+    border-color: var(--blue);
+    box-shadow: 0 0 0 3px var(--blue-glow);
+  }
+  .btn-login {
+    width: 100%;
+    background: linear-gradient(135deg, var(--blue), #004fcc);
+    border: none;
+    border-radius: 10px;
+    padding: 15px;
+    color: #fff;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.3rem;
+    letter-spacing: 2px;
+    cursor: pointer;
+    transition: transform .15s, box-shadow .2s;
+    margin-top: 6px;
+  }
+  .btn-login:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 30px var(--blue-glow);
+  }
+  .login-err {
+    color: var(--red);
+    font-size: 0.85rem;
+    margin-top: 12px;
+    min-height: 20px;
+  }
+
+  /* =================== MAIN APP =================== */
+  #app { display: none; position: relative; z-index: 1; }
+
+  .topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 28px;
+    background: var(--surface);
+    border-bottom: 1px solid #1e1e38;
+    position: sticky; top: 0; z-index: 50;
+  }
+  .topbar-logo {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.8rem;
+    letter-spacing: 3px;
+    background: linear-gradient(135deg, var(--blue), var(--red));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .topbar-tabs {
+    display: flex;
+    gap: 8px;
+  }
+  .tab-btn {
+    background: transparent;
+    border: 1px solid #2a2a4a;
+    border-radius: 8px;
+    padding: 8px 20px;
+    color: var(--muted);
+    font-family: 'Barlow', sans-serif;
+    font-weight: 700;
+    font-size: 0.85rem;
+    letter-spacing: 1px;
+    cursor: pointer;
+    transition: all .2s;
+  }
+  .tab-btn.active, .tab-btn:hover {
+    background: var(--blue);
+    border-color: var(--blue);
+    color: #fff;
+  }
+  .logout-btn {
+    background: transparent;
+    border: 1px solid #2a2a4a;
+    border-radius: 8px;
+    padding: 8px 16px;
+    color: var(--muted);
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: all .2s;
+  }
+  .logout-btn:hover { border-color: var(--red); color: var(--red); }
+
+  .tab-panel { display: none; padding: 28px; }
+  .tab-panel.active { display: block; }
+
+  /* =================== GAME TAB =================== */
+  .room-setup {
+    background: var(--surface);
+    border: 1px solid #2a2a4a;
+    border-radius: 16px;
+    padding: 28px;
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    flex-wrap: wrap;
+  }
+  .room-info { flex: 1; min-width: 200px; }
+  .room-label { font-size: 0.75rem; color: var(--muted); text-transform: uppercase; letter-spacing: 2px; margin-bottom: 4px; }
+  .room-code {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 2.5rem;
+    letter-spacing: 6px;
+    color: var(--gold);
+  }
+  .room-link-box {
+    background: var(--surface2);
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-size: 0.8rem;
+    color: var(--muted);
+    word-break: break-all;
+    cursor: pointer;
+    border: 1px solid #2a2a4a;
+    transition: border-color .2s;
+  }
+  .room-link-box:hover { border-color: var(--blue); color: var(--text); }
+
+  .game-controls { display: flex; gap: 10px; flex-wrap: wrap; }
+  .btn {
+    padding: 12px 24px;
+    border-radius: 10px;
+    border: none;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.1rem;
+    letter-spacing: 2px;
+    cursor: pointer;
+    transition: transform .15s, box-shadow .2s, opacity .2s;
+  }
+  .btn:active { transform: scale(.97); }
+  .btn-primary { background: linear-gradient(135deg, var(--blue), #0052d4); color: #fff; }
+  .btn-primary:hover { box-shadow: 0 6px 24px var(--blue-glow); }
+  .btn-success { background: linear-gradient(135deg, #00c853, #007a33); color: #fff; }
+  .btn-success:hover { box-shadow: 0 6px 24px rgba(0,200,83,0.4); }
+  .btn-danger { background: linear-gradient(135deg, var(--red), #8b0010); color: #fff; }
+  .btn-danger:hover { box-shadow: 0 6px 24px var(--red-glow); }
+  .btn-ghost { background: transparent; border: 1px solid #2a2a4a; color: var(--muted); }
+  .btn-ghost:hover { border-color: var(--text); color: var(--text); }
+  .btn:disabled { opacity: .4; cursor: not-allowed; }
+
+  /* === TUG-OF-WAR ARENA === */
+  .arena {
+    background: var(--surface);
+    border: 1px solid #1e1e38;
+    border-radius: 20px;
+    padding: 32px 28px;
+    margin-bottom: 24px;
+    position: relative;
+    overflow: hidden;
+  }
+  .arena::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 50%;
+    transform: translateX(-50%);
+    width: 2px; height: 100%;
+    background: rgba(255,255,255,0.06);
+  }
+  .teams-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+  .team-card {
+    border-radius: 14px;
+    padding: 20px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .team-card.blue {
+    background: linear-gradient(135deg, rgba(26,108,255,0.2), rgba(26,108,255,0.05));
+    border: 1px solid rgba(26,108,255,0.3);
+  }
+  .team-card.red {
+    background: linear-gradient(135deg, rgba(255,26,46,0.2), rgba(255,26,46,0.05));
+    border: 1px solid rgba(255,26,46,0.3);
+  }
+  .team-name {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.5rem;
+    letter-spacing: 3px;
+    margin-bottom: 4px;
+  }
+  .team-card.blue .team-name { color: var(--blue); }
+  .team-card.red .team-name { color: var(--red); }
+  .team-count { font-size: 0.8rem; color: var(--muted); }
+  .team-score {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 4rem;
+    line-height: 1;
+    margin-top: 8px;
+  }
+  .team-card.blue .team-score { color: var(--blue); }
+  .team-card.red .team-score { color: var(--red); }
+
+  /* ROPE */
+  .rope-container {
+    position: relative;
+    height: 80px;
+    display: flex;
+    align-items: center;
+    margin: 4px 0 20px;
+  }
+  .rope-track {
+    width: 100%;
+    height: 16px;
+    background: linear-gradient(90deg, #1a1a2e, #0d0d1a, #1a1a2e);
+    border-radius: 8px;
+    position: relative;
+    overflow: visible;
+  }
+  .rope-line {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    height: 12px;
+    border-radius: 6px;
+    transition: all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+    background: repeating-linear-gradient(
+      90deg,
+      var(--rope) 0px, var(--rope) 12px,
+      var(--rope-dark) 12px, var(--rope-dark) 24px
+    );
+  }
+  .rope-knot {
+    position: absolute;
+    top: 50%;
+    width: 44px; height: 44px;
+    transform: translate(-50%, -50%);
+    background: radial-gradient(circle, #fff 30%, #f0c060 55%, #a06010 100%);
+    border-radius: 50%;
+    border: 4px solid #705010;
+    box-shadow: 0 0 0 2px rgba(255,255,255,0.2), 0 4px 12px rgba(0,0,0,0.5);
+    transition: left 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+    z-index: 2;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px;
+  }
+  .rope-flag-blue, .rope-flag-red {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 3px;
+    height: 30px;
+    z-index: 1;
+  }
+  .rope-flag-blue { left: 16.67%; background: var(--blue); box-shadow: 0 0 8px var(--blue-glow); }
+  .rope-flag-red { right: 16.67%; background: var(--red); box-shadow: 0 0 8px var(--red-glow); }
+
+  .position-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.75rem;
+    color: var(--muted);
+    margin-bottom: 8px;
+  }
+  .score-labels {
+    display: flex;
+    justify-content: space-between;
+    padding: 0 8px;
+  }
+  .score-label {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 0.9rem;
+    color: var(--muted);
+  }
+
+  /* QUESTION DISPLAY */
+  .question-panel {
+    background: var(--surface2);
+    border: 1px solid #2a2a4a;
+    border-radius: 14px;
+    padding: 24px;
+    margin-bottom: 20px;
+  }
+  .q-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 14px;
+  }
+  .q-num {
+    font-size: 0.75rem;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+  }
+  .q-status {
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: 4px 12px;
+    border-radius: 20px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+  .q-status.waiting { background: rgba(255,165,0,0.15); color: orange; }
+  .q-status.active { background: rgba(0,200,83,0.15); color: #00c853; }
+  .q-status.answered { background: rgba(26,108,255,0.15); color: var(--blue); }
+  .q-text {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--text);
+    line-height: 1.4;
+    margin-bottom: 16px;
+  }
+  .q-answers {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+  .q-answer {
+    background: var(--surface);
+    border: 1px solid #2a2a4a;
+    border-radius: 10px;
+    padding: 12px 16px;
+    font-size: 0.9rem;
+    color: var(--muted);
+    display: flex;
+    gap: 10px;
+    align-items: center;
+  }
+  .q-answer.correct {
+    border-color: #00c853;
+    background: rgba(0,200,83,0.1);
+    color: #00c853;
+  }
+  .q-letter {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1rem;
+    color: var(--muted);
+    min-width: 20px;
+  }
+
+  /* LIVE FEED */
+  .live-feed {
+    background: var(--surface);
+    border: 1px solid #1e1e38;
+    border-radius: 14px;
+    padding: 20px;
+  }
+  .live-feed-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1rem;
+    letter-spacing: 3px;
+    color: var(--muted);
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .live-dot {
+    width: 8px; height: 8px;
+    background: #00c853;
+    border-radius: 50%;
+    box-shadow: 0 0 8px #00c853;
+    animation: blink 1.4s infinite;
+  }
+  @keyframes blink { 0%,100% { opacity:1; } 50% { opacity:0.2; } }
+  .feed-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    max-height: 200px;
+    overflow-y: auto;
+  }
+  .feed-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 0.85rem;
+    padding: 8px 12px;
+    border-radius: 8px;
+    animation: feedIn 0.4s ease;
+  }
+  @keyframes feedIn { from { opacity:0; transform: translateY(-6px); } to { opacity:1; transform: translateY(0); } }
+  .feed-item.correct { background: rgba(0,200,83,0.08); }
+  .feed-item.wrong { background: rgba(255,26,46,0.08); }
+  .feed-badge {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 0.75rem;
+    padding: 2px 8px;
+    border-radius: 4px;
+    letter-spacing: 1px;
+  }
+  .feed-badge.blue { background: var(--blue); color: #fff; }
+  .feed-badge.red { background: var(--red); color: #fff; }
+  .feed-name { color: var(--text); flex: 1; }
+  .feed-result { font-size: 0.75rem; color: var(--muted); }
+
+  /* PLAYERS LIST */
+  .players-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 10px;
+    margin-top: 16px;
+  }
+  .player-chip {
+    background: var(--surface2);
+    border-radius: 10px;
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    border: 1px solid #2a2a4a;
+  }
+  .player-avatar {
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 0.9rem;
+    flex-shrink: 0;
+  }
+  .player-avatar.blue { background: rgba(26,108,255,0.2); color: var(--blue); border: 1px solid var(--blue); }
+  .player-avatar.red { background: rgba(255,26,46,0.2); color: var(--red); border: 1px solid var(--red); }
+  .player-name-chip { font-size: 0.85rem; font-weight: 600; color: var(--text); }
+
+  /* WINNER OVERLAY */
+  #winnerOverlay {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.85);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 200;
+    flex-direction: column;
+    gap: 20px;
+  }
+  .winner-card {
+    background: var(--surface);
+    border-radius: 24px;
+    padding: 60px 80px;
+    text-align: center;
+    border: 2px solid var(--gold);
+    box-shadow: 0 0 80px rgba(255,215,0,0.3);
+    animation: winnerPop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  @keyframes winnerPop { from { transform: scale(0.5); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+  .winner-emoji { font-size: 5rem; margin-bottom: 16px; }
+  .winner-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1rem;
+    letter-spacing: 4px;
+    color: var(--muted);
+    margin-bottom: 8px;
+  }
+  .winner-name {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 4rem;
+    letter-spacing: 4px;
+  }
+  .winner-name.blue { color: var(--blue); text-shadow: 0 0 40px var(--blue-glow); }
+  .winner-name.red { color: var(--red); text-shadow: 0 0 40px var(--red-glow); }
+
+  /* =================== QUESTIONS TAB =================== */
+  .questions-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 24px;
+  }
+  .section-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 2rem;
+    letter-spacing: 3px;
+    color: var(--text);
+  }
+  .q-form-card {
+    background: var(--surface);
+    border: 1px solid #2a2a4a;
+    border-radius: 16px;
+    padding: 28px;
+    margin-bottom: 24px;
+  }
+  .form-row {
+    margin-bottom: 18px;
+  }
+  .form-label {
+    display: block;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-bottom: 8px;
+  }
+  .form-input, .form-textarea, .form-select {
+    width: 100%;
+    background: var(--surface2);
+    border: 1px solid #2a2a4a;
+    border-radius: 10px;
+    padding: 12px 16px;
+    color: var(--text);
+    font-family: 'Barlow', sans-serif;
+    font-size: 0.95rem;
+    outline: none;
+    transition: border-color .2s, box-shadow .2s;
+  }
+  .form-input:focus, .form-textarea:focus, .form-select:focus {
+    border-color: var(--blue);
+    box-shadow: 0 0 0 3px var(--blue-glow);
+  }
+  .form-textarea { resize: vertical; min-height: 80px; }
+  .answers-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+  .answer-input-row {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+  .answer-letter {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.1rem;
+    color: var(--muted);
+    width: 20px;
+    flex-shrink: 0;
+  }
+  .correct-radio {
+    appearance: none;
+    width: 18px; height: 18px;
+    border: 2px solid #2a2a4a;
+    border-radius: 50%;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: all .2s;
+  }
+  .correct-radio:checked {
+    background: #00c853;
+    border-color: #00c853;
+    box-shadow: 0 0 8px rgba(0,200,83,0.5);
+  }
+
+  /* QUESTIONS LIST */
+  .q-list { display: flex; flex-direction: column; gap: 12px; }
+  .q-card {
+    background: var(--surface);
+    border: 1px solid #2a2a4a;
+    border-radius: 14px;
+    padding: 20px 24px;
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    transition: border-color .2s;
+  }
+  .q-card:hover { border-color: #3a3a5a; }
+  .q-card-num {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 2rem;
+    color: var(--muted);
+    min-width: 40px;
+    line-height: 1;
+  }
+  .q-card-body { flex: 1; }
+  .q-card-text { font-weight: 700; font-size: 0.95rem; margin-bottom: 10px; }
+  .q-card-opts {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .q-opt-chip {
+    font-size: 0.75rem;
+    padding: 4px 10px;
+    border-radius: 6px;
+    background: var(--surface2);
+    border: 1px solid #2a2a4a;
+    color: var(--muted);
+  }
+  .q-opt-chip.correct {
+    background: rgba(0,200,83,0.15);
+    border-color: #00c853;
+    color: #00c853;
+  }
+  .q-card-actions { display: flex; gap: 6px; }
+  .btn-icon {
+    width: 34px; height: 34px;
+    border-radius: 8px;
+    border: 1px solid #2a2a4a;
+    background: transparent;
+    color: var(--muted);
+    cursor: pointer;
+    font-size: 0.85rem;
+    transition: all .2s;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .btn-icon:hover { border-color: var(--red); color: var(--red); }
+  .empty-state {
+    text-align: center;
+    padding: 60px;
+    color: var(--muted);
+  }
+  .empty-icon { font-size: 3rem; margin-bottom: 12px; }
+  .empty-text { font-size: 0.9rem; }
+
+  /* =================== STATS TAB =================== */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+  .stat-card {
+    background: var(--surface);
+    border: 1px solid #2a2a4a;
+    border-radius: 14px;
+    padding: 24px;
+    text-align: center;
+  }
+  .stat-val {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 3rem;
+    color: var(--text);
+    line-height: 1;
+  }
+  .stat-lbl { font-size: 0.75rem; color: var(--muted); text-transform: uppercase; letter-spacing: 2px; margin-top: 6px; }
+
+  /* responsive */
+  @media (max-width: 768px) {
+    .teams-row { grid-template-columns: 1fr; }
+    .q-answers { grid-template-columns: 1fr; }
+    .answers-grid { grid-template-columns: 1fr; }
+    .topbar-tabs { gap: 4px; }
+    .tab-btn { padding: 6px 12px; font-size: 0.75rem; }
+    .winner-card { padding: 40px 30px; }
+    .winner-name { font-size: 3rem; }
+  }
+
+  /* scrollbar */
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: #2a2a4a; border-radius: 4px; }
+
+  .confetti-container { position: fixed; inset: 0; pointer-events: none; z-index: 199; overflow: hidden; }
+  .confetti-piece {
+    position: absolute;
+    width: 10px; height: 10px;
+    animation: confettiFall linear forwards;
+  }
+  @keyframes confettiFall {
+    0% { transform: translateY(-20px) rotate(0deg); opacity: 1; }
+    100% { transform: translateY(110vh) rotate(720deg); opacity: 0; }
+  }
+</style>
+</head>
+<body>
+
+<!-- LOGIN SCREEN -->
+<div id="loginScreen">
+  <div class="login-card">
+    <div class="login-logo">TugWar Tech</div>
+    <div class="login-sub">Painel do Professor</div>
+    <input type="text" id="loginUser" placeholder="Usuário" value="">
+    <input type="password" id="loginPass" placeholder="Senha" value="">
+    <button class="btn-login" onclick="doLogin()">ENTRAR</button>
+    <div class="login-err" id="loginErr"></div>
+    <div style="margin-top:16px;font-size:0.7rem;color:var(--muted)">Padrão: admin / admin123</div>
+  </div>
+</div>
+
+<!-- MAIN APP -->
+<div id="app">
+  <div class="topbar">
+    <div class="topbar-logo">TugWar Tech</div>
+    <div class="topbar-tabs">
+      <button class="tab-btn active" onclick="showTab('game')">🎮 Jogo</button>
+      <button class="tab-btn" onclick="showTab('questions')">📝 Questões</button>
+      <button class="tab-btn" onclick="showTab('players')">👥 Alunos</button>
+    </div>
+    <button class="logout-btn" onclick="doLogout()">Sair</button>
+  </div>
+
+  <!-- GAME TAB -->
+  <div class="tab-panel active" id="tab-game">
+    <div class="room-setup">
+      <div class="room-info">
+        <div class="room-label">Código da Sala</div>
+        <div class="room-code" id="roomCode">----</div>
+      </div>
+      <div class="room-info">
+        <div class="room-label">Link do Aluno (clique para copiar)</div>
+        <div class="room-link-box" id="roomLink" onclick="copyLink()">Gerando link...</div>
+      </div>
+      <div class="game-controls">
+        <button class="btn btn-success" id="btnStart" onclick="startGame()">▶ INICIAR</button>
+        <button class="btn btn-primary" id="btnNext" onclick="nextQuestion()" disabled>⏭ PRÓXIMA</button>
+        <button class="btn btn-danger" id="btnReset" onclick="resetGame()">↺ REINICIAR</button>
+      </div>
+    </div>
+
+    <!-- ARENA -->
+    <div class="arena">
+      <div class="teams-row">
+        <div class="team-card blue">
+          <div class="team-name">⚡ TIME AZUL</div>
+          <div class="team-count" id="blueCount">0 jogadores</div>
+          <div class="team-score" id="blueScore">0</div>
+        </div>
+        <div class="team-card red">
+          <div class="team-name">🔥 TIME VERMELHO</div>
+          <div class="team-count" id="redCount">0 jogadores</div>
+          <div class="team-score" id="redScore">0</div>
+        </div>
+      </div>
+
+      <!-- ROPE -->
+      <div class="rope-container">
+        <div class="rope-track" id="ropeTrack">
+          <div class="rope-line" id="ropeLeft" style="left:0; width:50%"></div>
+          <div class="rope-line" id="ropeRight" style="right:0; width:50%; background: repeating-linear-gradient(90deg, #c83030 0px, #c83030 12px, #8a1010 12px, #8a1010 24px);"></div>
+          <div class="rope-flag-blue"></div>
+          <div class="rope-flag-red"></div>
+          <div class="rope-knot" id="ropeKnot">⭕</div>
+        </div>
+      </div>
+
+      <div class="score-labels">
+        <span class="score-label" style="color:var(--blue)">◀ -6</span>
+        <span class="score-label">0</span>
+        <span class="score-label" style="color:var(--red)">+6 ▶</span>
+      </div>
+    </div>
+
+    <!-- QUESTION PANEL -->
+    <div class="question-panel" id="questionPanel">
+      <div class="q-meta">
+        <div class="q-num" id="qNum">Aguardando início...</div>
+        <div class="q-status waiting" id="qStatus">AGUARDANDO</div>
+      </div>
+      <div class="q-text" id="qText">Inicie o jogo para começar as perguntas.</div>
+      <div class="q-answers" id="qAnswers"></div>
+    </div>
+
+    <!-- LIVE FEED -->
+    <div class="live-feed">
+      <div class="live-feed-title"><div class="live-dot"></div> FEED AO VIVO</div>
+      <div class="feed-list" id="feedList">
+        <div style="color:var(--muted);font-size:0.8rem;text-align:center;padding:20px">
+          Aguardando respostas...
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- QUESTIONS TAB -->
+  <div class="tab-panel" id="tab-questions">
+    <div class="questions-header">
+      <div class="section-title">Banco de Questões</div>
+      <button class="btn btn-primary" onclick="toggleForm()">+ NOVA QUESTÃO</button>
+    </div>
+
+    <!-- ADD QUESTION FORM -->
+    <div class="q-form-card" id="qFormCard" style="display:none">
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:1.3rem;letter-spacing:3px;margin-bottom:20px;color:var(--text)">
+        ✏️ ADICIONAR QUESTÃO
+      </div>
+      <div class="form-row">
+        <label class="form-label">Pergunta</label>
+        <textarea class="form-textarea" id="fQuestion" placeholder="Digite a pergunta..."></textarea>
+      </div>
+      <div class="form-row">
+        <label class="form-label">Alternativas (marque a correta com ●)</label>
+        <div class="answers-grid">
+          <div class="answer-input-row">
+            <span class="answer-letter">A</span>
+            <input class="form-input" id="fA" placeholder="Alternativa A">
+            <input type="radio" name="correct" value="0" class="correct-radio" checked>
+          </div>
+          <div class="answer-input-row">
+            <span class="answer-letter">B</span>
+            <input class="form-input" id="fB" placeholder="Alternativa B">
+            <input type="radio" name="correct" value="1" class="correct-radio">
+          </div>
+          <div class="answer-input-row">
+            <span class="answer-letter">C</span>
+            <input class="form-input" id="fC" placeholder="Alternativa C (opcional)">
+            <input type="radio" name="correct" value="2" class="correct-radio">
+          </div>
+          <div class="answer-input-row">
+            <span class="answer-letter">D</span>
+            <input class="form-input" id="fD" placeholder="Alternativa D (opcional)">
+            <input type="radio" name="correct" value="3" class="correct-radio">
+          </div>
+        </div>
+      </div>
+      <div style="display:flex;gap:12px;margin-top:8px">
+        <button class="btn btn-success" onclick="saveQuestion()">✓ SALVAR</button>
+        <button class="btn btn-ghost" onclick="toggleForm()">CANCELAR</button>
+      </div>
+    </div>
+
+    <!-- IMPORT AREA -->
+    <div class="q-form-card" style="margin-bottom:24px">
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:1.1rem;letter-spacing:3px;margin-bottom:14px;color:var(--muted)">
+        📋 IMPORTAR JSON
+      </div>
+      <textarea class="form-textarea" id="importJson" placeholder='Cole aqui um JSON com questões. Formato: [{"question":"...","options":["A","B","C"],"correct":0},...]' style="min-height:100px"></textarea>
+      <div style="display:flex;gap:10px;margin-top:12px">
+        <button class="btn btn-primary" onclick="importQuestions()" style="font-size:0.9rem;padding:10px 20px">IMPORTAR</button>
+        <button class="btn btn-ghost" onclick="downloadTemplate()" style="font-size:0.9rem;padding:10px 20px">⬇ TEMPLATE</button>
+        <button class="btn btn-danger" onclick="clearQuestions()" style="font-size:0.9rem;padding:10px 20px">🗑 LIMPAR TUDO</button>
+      </div>
+    </div>
+
+    <div class="q-list" id="questionList">
+      <div class="empty-state">
+        <div class="empty-icon">📭</div>
+        <div class="empty-text">Nenhuma questão cadastrada.<br>Adicione questões para começar!</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PLAYERS TAB -->
+  <div class="tab-panel" id="tab-players">
+    <div class="questions-header">
+      <div class="section-title">Jogadores Conectados</div>
+    </div>
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-val" id="statTotal">0</div>
+        <div class="stat-lbl">Total</div>
+      </div>
+      <div class="stat-card" style="border-color:rgba(26,108,255,0.3)">
+        <div class="stat-val" style="color:var(--blue)" id="statBlue">0</div>
+        <div class="stat-lbl">Time Azul</div>
+      </div>
+      <div class="stat-card" style="border-color:rgba(255,26,46,0.3)">
+        <div class="stat-val" style="color:var(--red)" id="statRed">0</div>
+        <div class="stat-lbl">Time Vermelho</div>
+      </div>
+    </div>
+    <div class="players-grid" id="playersList">
+      <div style="color:var(--muted);font-size:0.85rem;padding:20px">Aguardando jogadores...</div>
+    </div>
+  </div>
+</div>
+
+<!-- WINNER OVERLAY -->
+<div id="winnerOverlay">
+  <div class="confetti-container" id="confetti"></div>
+  <div class="winner-card">
+    <div class="winner-emoji">🏆</div>
+    <div class="winner-title">VENCEDOR</div>
+    <div class="winner-name" id="winnerName">TIME AZUL</div>
+    <div style="margin-top:20px;color:var(--muted);font-size:0.85rem">Parabéns à toda a equipe!</div>
+  </div>
+  <button class="btn btn-ghost" onclick="closeWinner()" style="margin-top:16px">Fechar</button>
+</div>
+
+<!-- FIREBASE SDK -->
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+<script src="script.js"></script>
+<script>
+// ============================
+// AUTH
+// ============================
+const CREDENTIALS = { admin: 'admin123' };
+
+function doLogin() {
+  const u = document.getElementById('loginUser').value.trim();
+  const p = document.getElementById('loginPass').value.trim();
+  if (CREDENTIALS[u] && CREDENTIALS[u] === p) {
+    document.getElementById('loginScreen').style.display = 'none';
+    document.getElementById('app').style.display = 'block';
+    initProfessor();
+  } else {
+    document.getElementById('loginErr').textContent = 'Usuário ou senha incorretos.';
+  }
+}
+document.getElementById('loginUser').addEventListener('keydown', e => { if(e.key==='Enter') document.getElementById('loginPass').focus(); });
+document.getElementById('loginPass').addEventListener('keydown', e => { if(e.key==='Enter') doLogin(); });
+
+function doLogout() {
+  document.getElementById('loginScreen').style.display = 'flex';
+  document.getElementById('app').style.display = 'none';
+}
+
+// ============================
+// TABS
+// ============================
+function showTab(name) {
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-'+name).classList.add('active');
+  event.target.classList.add('active');
+}
+
+// ============================
+// QUESTIONS MANAGER
+// ============================
+let questions = JSON.parse(localStorage.getItem('tugwar_questions') || '[]');
+let editingIdx = null;
+const LETTERS = ['A','B','C','D'];
+
+function saveQuestionsToStorage() {
+  localStorage.setItem('tugwar_questions', JSON.stringify(questions));
+  if(window.db && window.gameRoom) {
+    db.ref(`rooms/${gameRoom}/questions`).set(questions);
+  }
+}
+
+function toggleForm() {
+  const card = document.getElementById('qFormCard');
+  card.style.display = card.style.display === 'none' ? 'block' : 'none';
+  if(card.style.display === 'none') { clearForm(); editingIdx = null; }
+}
+
+function clearForm() {
+  ['fQuestion','fA','fB','fC','fD'].forEach(id => document.getElementById(id).value = '');
+  document.querySelector('input[name="correct"][value="0"]').checked = true;
+}
+
+function saveQuestion() {
+  const q = document.getElementById('fQuestion').value.trim();
+  const a = document.getElementById('fA').value.trim();
+  const b = document.getElementById('fB').value.trim();
+  const c = document.getElementById('fC').value.trim();
+  const d = document.getElementById('fD').value.trim();
+  const correctVal = parseInt(document.querySelector('input[name="correct"]:checked').value);
+
+  if(!q || !a || !b) { alert('Preencha a pergunta e pelo menos 2 alternativas.'); return; }
+
+  const opts = [a, b];
+  if(c) opts.push(c);
+  if(d) opts.push(d);
+
+  const obj = { question: q, options: opts, correct: correctVal };
+
+  if(editingIdx !== null) {
+    questions[editingIdx] = obj;
+    editingIdx = null;
+  } else {
+    questions.push(obj);
+  }
+
+  saveQuestionsToStorage();
+  renderQuestions();
+  clearForm();
+  document.getElementById('qFormCard').style.display = 'none';
+}
+
+function deleteQuestion(idx) {
+  if(!confirm('Remover esta questão?')) return;
+  questions.splice(idx, 1);
+  saveQuestionsToStorage();
+  renderQuestions();
+}
+
+function editQuestion(idx) {
+  const q = questions[idx];
+  document.getElementById('fQuestion').value = q.question;
+  document.getElementById('fA').value = q.options[0] || '';
+  document.getElementById('fB').value = q.options[1] || '';
+  document.getElementById('fC').value = q.options[2] || '';
+  document.getElementById('fD').value = q.options[3] || '';
+  document.querySelector(`input[name="correct"][value="${q.correct}"]`).checked = true;
+  editingIdx = idx;
+  document.getElementById('qFormCard').style.display = 'block';
+  showTab('questions');
+  document.getElementById('qFormCard').scrollIntoView({behavior:'smooth'});
+}
+
+function renderQuestions() {
+  const list = document.getElementById('questionList');
+  if(questions.length === 0) {
+    list.innerHTML = '<div class="empty-state"><div class="empty-icon">📭</div><div class="empty-text">Nenhuma questão cadastrada.<br>Adicione questões para começar!</div></div>';
+    return;
+  }
+  list.innerHTML = questions.map((q, i) => `
+    <div class="q-card">
+      <div class="q-card-num">${i+1}</div>
+      <div class="q-card-body">
+        <div class="q-card-text">${q.question}</div>
+        <div class="q-card-opts">
+          ${q.options.map((opt, oi) => `<span class="q-opt-chip ${oi===q.correct?'correct':''}">${LETTERS[oi]}: ${opt}</span>`).join('')}
+        </div>
+      </div>
+      <div class="q-card-actions">
+        <button class="btn-icon" onclick="editQuestion(${i})" title="Editar">✏️</button>
+        <button class="btn-icon" onclick="deleteQuestion(${i})" title="Excluir">🗑️</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function importQuestions() {
+  try {
+    const raw = document.getElementById('importJson').value.trim();
+    const parsed = JSON.parse(raw);
+    if(!Array.isArray(parsed)) throw new Error('Deve ser um array');
+    questions = [...questions, ...parsed];
+    saveQuestionsToStorage();
+    renderQuestions();
+    document.getElementById('importJson').value = '';
+    alert(`✅ ${parsed.length} questão(ões) importada(s)!`);
+  } catch(e) {
+    alert('❌ JSON inválido: ' + e.message);
+  }
+}
+
+function clearQuestions() {
+  if(!confirm('Limpar TODAS as questões?')) return;
+  questions = [];
+  saveQuestionsToStorage();
+  renderQuestions();
+}
+
+function downloadTemplate() {
+  const t = JSON.stringify([
+    {"question":"Qual é a capital do Brasil?","options":["São Paulo","Brasília","Rio de Janeiro","Manaus"],"correct":1},
+    {"question":"Quanto é 2 + 2?","options":["3","4","5","6"],"correct":1}
+  ], null, 2);
+  const blob = new Blob([t], {type:'application/json'});
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'questoes_tugwar.json'; a.click();
+}
+
+// ============================
+// WINNER & CONFETTI
+// ============================
+function showWinner(teamColor) {
+  const overlay = document.getElementById('winnerOverlay');
+  const name = document.getElementById('winnerName');
+  name.textContent = teamColor === 'blue' ? 'TIME AZUL ⚡' : 'TIME VERMELHO 🔥';
+  name.className = 'winner-name ' + teamColor;
+  overlay.style.display = 'flex';
+  spawnConfetti();
+}
+function closeWinner() {
+  document.getElementById('winnerOverlay').style.display = 'none';
+  document.getElementById('confetti').innerHTML = '';
+}
+function spawnConfetti() {
+  const c = document.getElementById('confetti');
+  c.innerHTML = '';
+  const colors = ['#1a6cff','#ff1a2e','#ffd700','#00c853','#ff9800','#e040fb'];
+  for(let i = 0; i < 80; i++) {
+    const el = document.createElement('div');
+    el.className = 'confetti-piece';
+    el.style.cssText = `
+      left: ${Math.random()*100}%;
+      top: ${-10 - Math.random()*20}px;
+      background: ${colors[Math.floor(Math.random()*colors.length)]};
+      width: ${6+Math.random()*10}px;
+      height: ${6+Math.random()*10}px;
+      border-radius: ${Math.random()>0.5?'50%':'2px'};
+      animation-duration: ${2+Math.random()*2}s;
+      animation-delay: ${Math.random()*1.5}s;
+    `;
+    c.appendChild(el);
+  }
+}
+
+// ============================
+// ROPE ANIMATION
+// ============================
+function updateRope(position) {
+  // position: -6 to +6. 0 = center. negative = blue wins, positive = red wins
+  const pct = ((position + 6) / 12) * 100; // 0% = far left (blue side), 100% = far right (red side)
+  const ropeKnot = document.getElementById('ropeKnot');
+  const track = document.getElementById('ropeTrack');
+  const trackW = track.offsetWidth;
+  ropeKnot.style.left = pct + '%';
+  document.getElementById('ropeLeft').style.width = pct + '%';
+  document.getElementById('ropeRight').style.right = '0';
+  document.getElementById('ropeRight').style.width = (100 - pct) + '%';
+
+  // update scores
+  document.getElementById('blueScore').textContent = Math.max(0, -position);
+  document.getElementById('redScore').textContent = Math.max(0, position);
+}
+
+// ============================
+// LINK COPY
+// ============================
+function copyLink() {
+  const link = document.getElementById('roomLink').textContent;
+  navigator.clipboard.writeText(link).then(() => {
+    document.getElementById('roomLink').textContent = '✓ Copiado!';
+    setTimeout(() => document.getElementById('roomLink').textContent = link, 2000);
+  });
+}
+
+// INIT
+renderQuestions();
+</script>
+</body>
+</html>

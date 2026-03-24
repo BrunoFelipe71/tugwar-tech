@@ -1,0 +1,692 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>TugWar Tech — Aluno</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow:wght@400;600;700;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --blue: #1a6cff;
+    --blue-dark: #0f47b3;
+    --blue-glow: rgba(26,108,255,0.4);
+    --red: #ff1a2e;
+    --red-dark: #b30f1f;
+    --red-glow: rgba(255,26,46,0.4);
+    --bg: #08080f;
+    --surface: #111120;
+    --surface2: #1a1a2e;
+    --text: #f0f0ff;
+    --muted: #666688;
+    --gold: #ffd700;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+  body {
+    font-family: 'Barlow', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    min-height: -webkit-fill-available;
+    overflow-x: hidden;
+  }
+
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background-image:
+      linear-gradient(rgba(26,108,255,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(26,108,255,0.03) 1px, transparent 1px);
+    background-size: 30px 30px;
+    pointer-events: none; z-index: 0;
+  }
+
+  .screen {
+    position: fixed; inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    flex-direction: column;
+    padding: 24px;
+    z-index: 1;
+    transition: opacity .3s;
+  }
+  .screen.hidden { opacity: 0; pointer-events: none; }
+
+  /* =================== JOIN SCREEN =================== */
+  #joinScreen {
+    flex-direction: column;
+    gap: 0;
+    align-items: center;
+    justify-content: center;
+    overflow-y: auto;
+  }
+  .logo {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 3.5rem;
+    letter-spacing: 4px;
+    background: linear-gradient(135deg, var(--blue), var(--red));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 4px;
+  }
+  .logo-sub {
+    font-size: 0.75rem;
+    color: var(--muted);
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    margin-bottom: 36px;
+  }
+  .join-card {
+    background: var(--surface);
+    border: 1px solid #2a2a4a;
+    border-radius: 20px;
+    padding: 32px 28px;
+    width: 100%; max-width: 380px;
+  }
+  .join-card input {
+    width: 100%;
+    background: var(--surface2);
+    border: 1px solid #2a2a4a;
+    border-radius: 12px;
+    padding: 16px 18px;
+    color: var(--text);
+    font-family: 'Barlow', sans-serif;
+    font-size: 1.1rem;
+    text-align: center;
+    outline: none;
+    margin-bottom: 14px;
+    transition: border-color .2s, box-shadow .2s;
+  }
+  .join-card input:focus {
+    border-color: var(--blue);
+    box-shadow: 0 0 0 3px var(--blue-glow);
+  }
+  .code-input {
+    font-family: 'Bebas Neue', sans-serif !important;
+    font-size: 2.2rem !important;
+    letter-spacing: 8px !important;
+    text-transform: uppercase;
+  }
+  .team-select {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 18px;
+  }
+  .team-opt {
+    border: 2px solid #2a2a4a;
+    border-radius: 12px;
+    padding: 18px 12px;
+    text-align: center;
+    cursor: pointer;
+    transition: all .2s;
+    user-select: none;
+  }
+  .team-opt:active { transform: scale(.96); }
+  .team-opt.blue:hover, .team-opt.blue.selected {
+    border-color: var(--blue);
+    background: rgba(26,108,255,0.1);
+  }
+  .team-opt.red:hover, .team-opt.red.selected {
+    border-color: var(--red);
+    background: rgba(255,26,46,0.1);
+  }
+  .team-opt-icon { font-size: 2rem; margin-bottom: 6px; }
+  .team-opt-name {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1rem;
+    letter-spacing: 2px;
+  }
+  .team-opt.blue .team-opt-name { color: var(--blue); }
+  .team-opt.red .team-opt-name { color: var(--red); }
+
+  .btn-join {
+    width: 100%;
+    background: linear-gradient(135deg, var(--blue), #0052d4);
+    border: none;
+    border-radius: 12px;
+    padding: 18px;
+    color: #fff;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.4rem;
+    letter-spacing: 3px;
+    cursor: pointer;
+    transition: transform .15s, box-shadow .2s;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .btn-join:active { transform: scale(.97); }
+  .btn-join:disabled { opacity: .4; }
+  .join-err { color: var(--red); font-size: 0.85rem; text-align: center; margin-top: 12px; min-height: 20px; }
+
+  /* =================== LOBBY SCREEN =================== */
+  #lobbyScreen {
+    text-align: center;
+    gap: 20px;
+  }
+  .lobby-badge {
+    padding: 10px 24px;
+    border-radius: 20px;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1rem;
+    letter-spacing: 3px;
+  }
+  .lobby-badge.blue { background: rgba(26,108,255,0.2); color: var(--blue); border: 1px solid var(--blue); }
+  .lobby-badge.red { background: rgba(255,26,46,0.2); color: var(--red); border: 1px solid var(--red); }
+  .lobby-name {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 2.5rem;
+    letter-spacing: 2px;
+  }
+  .lobby-status {
+    color: var(--muted);
+    font-size: 0.9rem;
+    animation: lobbyPulse 2s infinite;
+  }
+  @keyframes lobbyPulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+  .lobby-count {
+    background: var(--surface);
+    border: 1px solid #2a2a4a;
+    border-radius: 12px;
+    padding: 16px 32px;
+    text-align: center;
+  }
+  .lobby-count-val {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 3rem;
+    color: var(--text);
+  }
+  .lobby-count-lbl { font-size: 0.75rem; color: var(--muted); text-transform: uppercase; letter-spacing: 2px; }
+
+  /* =================== GAME SCREEN =================== */
+  #gameScreen {
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: stretch;
+    padding: 0;
+    overflow-y: auto;
+  }
+
+  .game-header {
+    padding: 16px 20px;
+    background: var(--surface);
+    border-bottom: 1px solid #1e1e38;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky; top: 0; z-index: 10;
+  }
+  .game-header-team {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.1rem;
+    letter-spacing: 2px;
+  }
+  .game-header-team.blue { color: var(--blue); }
+  .game-header-team.red { color: var(--red); }
+  .game-score-mini {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.4rem;
+  }
+  .score-blue { color: var(--blue); }
+  .score-sep { color: var(--muted); font-size: 1rem; }
+  .score-red { color: var(--red); }
+
+  /* ROPE MINI */
+  .rope-mini {
+    margin: 16px 20px;
+    height: 10px;
+    background: #1a1a2e;
+    border-radius: 5px;
+    position: relative;
+    overflow: hidden;
+  }
+  .rope-mini-fill {
+    position: absolute;
+    top: 0; bottom: 0;
+    left: 0;
+    background: linear-gradient(90deg, var(--blue), #0080ff);
+    border-radius: 5px;
+    transition: width 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  .rope-mini-knot {
+    position: absolute;
+    top: 50%; transform: translate(-50%, -50%);
+    width: 20px; height: 20px;
+    background: radial-gradient(circle, #fff, #f0c060);
+    border-radius: 50%;
+    border: 2px solid #705010;
+    transition: left 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+    z-index: 2;
+  }
+
+  /* QUESTION AREA */
+  .question-area {
+    padding: 20px;
+    flex: 1;
+  }
+  .q-num-player {
+    font-size: 0.75rem;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-bottom: 12px;
+  }
+  .question-text {
+    font-size: 1.25rem;
+    font-weight: 800;
+    line-height: 1.4;
+    color: var(--text);
+    margin-bottom: 24px;
+    min-height: 60px;
+  }
+
+  .options-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+  .option-btn {
+    background: var(--surface);
+    border: 2px solid #2a2a4a;
+    border-radius: 14px;
+    padding: 20px 16px;
+    color: var(--text);
+    font-family: 'Barlow', sans-serif;
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all .15s;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    text-align: center;
+    min-height: 80px;
+    position: relative;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+  }
+  .option-btn:active:not(:disabled) { transform: scale(.96); }
+  .option-btn:disabled { cursor: not-allowed; }
+  .opt-letter {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 0.85rem;
+    letter-spacing: 2px;
+    color: var(--muted);
+  }
+  .opt-text { font-size: 0.9rem; line-height: 1.3; }
+  .option-btn.opt-blue:hover:not(:disabled) {
+    border-color: var(--blue);
+    background: rgba(26,108,255,0.1);
+  }
+  .option-btn.opt-red:hover:not(:disabled) {
+    border-color: var(--red);
+    background: rgba(255,26,46,0.1);
+  }
+  .option-btn.selected-correct {
+    border-color: #00c853 !important;
+    background: rgba(0,200,83,0.15) !important;
+    animation: correctPulse .4s ease;
+  }
+  .option-btn.selected-wrong {
+    border-color: var(--red) !important;
+    background: rgba(255,26,46,0.15) !important;
+    animation: wrongShake .4s ease;
+  }
+  .option-btn.reveal-correct {
+    border-color: #00c853 !important;
+    background: rgba(0,200,83,0.1) !important;
+  }
+  @keyframes correctPulse {
+    0% { transform: scale(1); } 50% { transform: scale(1.04); } 100% { transform: scale(1); }
+  }
+  @keyframes wrongShake {
+    0%,100% { transform: translateX(0); } 25% { transform: translateX(-6px); } 75% { transform: translateX(6px); }
+  }
+
+  .answered-banner {
+    background: var(--surface);
+    border: 1px solid #2a2a4a;
+    border-radius: 14px;
+    padding: 24px;
+    text-align: center;
+    margin-top: 20px;
+    display: none;
+  }
+  .answered-icon { font-size: 2.5rem; margin-bottom: 8px; }
+  .answered-text { font-size: 0.9rem; color: var(--muted); }
+  .answered-text strong { color: var(--text); display: block; font-size: 1.05rem; margin-bottom: 4px; }
+
+  /* =================== WAITING SCREEN =================== */
+  #waitingScreen {
+    text-align: center;
+    gap: 20px;
+  }
+  .waiting-spinner {
+    width: 60px; height: 60px;
+    border: 4px solid #2a2a4a;
+    border-top-color: var(--blue);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .waiting-text {
+    font-size: 1.1rem;
+    color: var(--muted);
+  }
+
+  /* =================== WINNER SCREEN =================== */
+  #winScreen {
+    text-align: center;
+    gap: 16px;
+  }
+  .win-emoji { font-size: 5rem; animation: winBounce 1s ease infinite alternate; }
+  @keyframes winBounce { from { transform: scale(1); } to { transform: scale(1.1) rotate(5deg); } }
+  .win-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1rem;
+    letter-spacing: 4px;
+    color: var(--muted);
+  }
+  .win-team {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 3.5rem;
+    letter-spacing: 3px;
+  }
+  .win-team.blue { color: var(--blue); text-shadow: 0 0 40px var(--blue-glow); }
+  .win-team.red { color: var(--red); text-shadow: 0 0 40px var(--red-glow); }
+  .win-sub { color: var(--muted); font-size: 0.9rem; }
+
+  @media (max-width: 400px) {
+    .options-grid { grid-template-columns: 1fr; }
+    .question-text { font-size: 1.1rem; }
+  }
+</style>
+</head>
+<body>
+
+<!-- JOIN SCREEN -->
+<div class="screen" id="joinScreen">
+  <div class="logo">TugWar Tech</div>
+  <div class="logo-sub">Cabo de Guerra Tech</div>
+  <div class="join-card">
+    <input class="code-input" type="text" id="roomCodeInput" placeholder="CÓDIGO" maxlength="6" autocomplete="off" spellcheck="false">
+    <input type="text" id="playerName" placeholder="Seu nome" maxlength="20" autocomplete="off">
+    <div class="team-select">
+      <div class="team-opt blue selected" onclick="selectTeam('blue')" id="optBlue">
+        <div class="team-opt-icon">⚡</div>
+        <div class="team-opt-name">Time Azul</div>
+      </div>
+      <div class="team-opt red" onclick="selectTeam('red')" id="optRed">
+        <div class="team-opt-icon">🔥</div>
+        <div class="team-opt-name">Time Vermelho</div>
+      </div>
+    </div>
+    <button class="btn-join" onclick="joinRoom()">ENTRAR NA SALA</button>
+    <div class="join-err" id="joinErr"></div>
+  </div>
+</div>
+
+<!-- LOBBY SCREEN -->
+<div class="screen hidden" id="lobbyScreen">
+  <div class="logo" style="font-size:2.5rem">TugWar Tech</div>
+  <div class="lobby-badge" id="lobbyTeamBadge">TIME AZUL</div>
+  <div class="lobby-name" id="lobbyPlayerName">Jogador</div>
+  <div class="lobby-count">
+    <div class="lobby-count-val" id="lobbyPlayerCount">0</div>
+    <div class="lobby-count-lbl">Jogadores na sala</div>
+  </div>
+  <div class="lobby-status">⏳ Aguardando o professor iniciar...</div>
+</div>
+
+<!-- GAME SCREEN -->
+<div class="screen hidden" id="gameScreen">
+  <div class="game-header">
+    <div class="game-header-team" id="gHeaderTeam">TIME AZUL</div>
+    <div class="game-score-mini">
+      <span class="score-blue" id="gScoreBlue">0</span>
+      <span class="score-sep">×</span>
+      <span class="score-red" id="gScoreRed">0</span>
+    </div>
+  </div>
+
+  <div class="rope-mini">
+    <div class="rope-mini-fill" id="ropeMiniLeft" style="width:50%"></div>
+    <div class="rope-mini-knot" id="ropeMiniKnot" style="left:50%"></div>
+  </div>
+
+  <div class="question-area">
+    <div class="q-num-player" id="gQNum">Pergunta 1</div>
+    <div class="question-text" id="gQText">Carregando pergunta...</div>
+    <div class="options-grid" id="gOptions"></div>
+    <div class="answered-banner" id="answeredBanner">
+      <div class="answered-icon" id="answeredIcon">✅</div>
+      <div class="answered-text">
+        <strong id="answeredTitle">Resposta enviada!</strong>
+        <span id="answeredSub">Aguardando próxima pergunta...</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- WAITING SCREEN -->
+<div class="screen hidden" id="waitingScreen">
+  <div class="waiting-spinner"></div>
+  <div class="waiting-text">Aguardando o jogo começar...</div>
+</div>
+
+<!-- WIN SCREEN -->
+<div class="screen hidden" id="winScreen">
+  <div class="win-emoji" id="winEmoji">🏆</div>
+  <div class="win-title">VENCEDOR</div>
+  <div class="win-team" id="winTeam">TIME AZUL</div>
+  <div class="win-sub" id="winSub">Parabéns!</div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+<script src="script.js"></script>
+<script>
+let myTeam = 'blue';
+let myName = '';
+let myPlayerId = null;
+let answered = false;
+let currentQId = null;
+
+// Pre-fill from URL params
+const urlParams = new URLSearchParams(window.location.search);
+const codeFromUrl = urlParams.get('room') || urlParams.get('code');
+if(codeFromUrl) {
+  document.getElementById('roomCodeInput').value = codeFromUrl.toUpperCase();
+}
+
+function selectTeam(team) {
+  myTeam = team;
+  document.getElementById('optBlue').classList.toggle('selected', team === 'blue');
+  document.getElementById('optRed').classList.toggle('selected', team === 'red');
+}
+
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.add('hidden'));
+  document.getElementById(id).classList.remove('hidden');
+}
+
+function joinRoom() {
+  const code = document.getElementById('roomCodeInput').value.trim().toUpperCase();
+  const name = document.getElementById('playerName').value.trim();
+  const err = document.getElementById('joinErr');
+
+  if(!code || code.length < 4) { err.textContent = 'Digite o código da sala.'; return; }
+  if(!name) { err.textContent = 'Digite seu nome.'; return; }
+  if(!window.db) { err.textContent = 'Erro: Firebase não configurado. Veja script.js.'; return; }
+
+  myName = name;
+  err.textContent = '';
+
+  // Check room exists
+  db.ref(`rooms/${code}`).once('value').then(snap => {
+    if(!snap.exists()) { err.textContent = 'Sala não encontrada.'; return; }
+
+    const gameRoom = code;
+    myPlayerId = db.ref(`rooms/${gameRoom}/players`).push().key;
+
+    db.ref(`rooms/${gameRoom}/players/${myPlayerId}`).set({
+      name: myName,
+      team: myTeam,
+      joinedAt: Date.now()
+    });
+
+    // Remove on disconnect
+    db.ref(`rooms/${gameRoom}/players/${myPlayerId}`).onDisconnect().remove();
+
+    // Update lobby UI
+    document.getElementById('lobbyTeamBadge').textContent = myTeam === 'blue' ? '⚡ TIME AZUL' : '🔥 TIME VERMELHO';
+    document.getElementById('lobbyTeamBadge').className = 'lobby-badge ' + myTeam;
+    document.getElementById('lobbyPlayerName').textContent = myName;
+
+    showScreen('lobbyScreen');
+
+    // Listen to game state
+    db.ref(`rooms/${gameRoom}/state`).on('value', snap => {
+      const state = snap.val();
+      if(!state) return;
+      handleGameState(state, gameRoom);
+    });
+
+    // Player count
+    db.ref(`rooms/${gameRoom}/players`).on('value', snap => {
+      const count = snap.numChildren();
+      document.getElementById('lobbyPlayerCount').textContent = count;
+    });
+
+  }).catch(e => { err.textContent = 'Erro ao conectar: ' + e.message; });
+}
+
+function handleGameState(state, gameRoom) {
+  if(state.status === 'waiting') {
+    showScreen('lobbyScreen');
+  }
+
+  if(state.status === 'active') {
+    // Update rope
+    const pos = state.position || 0;
+    const pct = ((pos + 6) / 12) * 100;
+    document.getElementById('ropeMiniLeft').style.width = pct + '%';
+    document.getElementById('ropeMiniKnot').style.left = pct + '%';
+    document.getElementById('gScoreBlue').textContent = Math.max(0, -pos);
+    document.getElementById('gScoreRed').textContent = Math.max(0, pos);
+    document.getElementById('gHeaderTeam').textContent = myTeam === 'blue' ? '⚡ TIME AZUL' : '🔥 TIME VERMELHO';
+    document.getElementById('gHeaderTeam').className = 'game-header-team ' + myTeam;
+
+    if(state.currentQuestion !== undefined) {
+      const qId = state.currentQuestionIndex;
+      if(qId !== currentQId) {
+        currentQId = qId;
+        answered = false;
+        loadQuestion(state, gameRoom);
+        showScreen('gameScreen');
+      }
+    }
+  }
+
+  if(state.status === 'finished') {
+    const winner = state.winner;
+    const winTeam = document.getElementById('winTeam');
+    winTeam.textContent = winner === 'blue' ? '⚡ TIME AZUL' : '🔥 TIME VERMELHO';
+    winTeam.className = 'win-team ' + winner;
+    document.getElementById('winEmoji').textContent = winner === 'blue' ? '⚡' : '🔥';
+    document.getElementById('winSub').textContent =
+      winner === myTeam ? '🎉 Você ganhou com seu time!' : '😢 Boa tentativa!';
+    showScreen('winScreen');
+  }
+}
+
+function loadQuestion(state, gameRoom) {
+  const q = state.currentQuestion;
+  if(!q) return;
+
+  document.getElementById('gQNum').textContent = `Pergunta ${(state.currentQuestionIndex||0)+1}`;
+  document.getElementById('gQText').textContent = q.question;
+
+  const opts = document.getElementById('gOptions');
+  const banner = document.getElementById('answeredBanner');
+  const LETTERS = ['A','B','C','D'];
+  banner.style.display = 'none';
+  opts.style.display = 'grid';
+
+  const teamClass = myTeam === 'blue' ? 'opt-blue' : 'opt-red';
+
+  opts.innerHTML = q.options.map((opt, i) => `
+    <button class="option-btn ${teamClass}" onclick="submitAnswer(${i}, '${gameRoom}')">
+      <span class="opt-letter">${LETTERS[i]}</span>
+      <span class="opt-text">${opt}</span>
+    </button>
+  `).join('');
+}
+
+function submitAnswer(idx, gameRoom) {
+  if(answered) return;
+  answered = true;
+
+  const timestamp = Date.now();
+  const answerId = db.ref(`rooms/${gameRoom}/answers`).push().key;
+
+  db.ref(`rooms/${gameRoom}/answers/${answerId}`).set({
+    player: myName,
+    playerId: myPlayerId,
+    team: myTeam,
+    answer: idx,
+    timestamp,
+    questionIndex: currentQId
+  });
+
+  // Visual feedback - show selected
+  const btns = document.querySelectorAll('.option-btn');
+  btns.forEach(b => b.disabled = true);
+  btns[idx].classList.add('selected-correct'); // will be confirmed by state
+
+  // Listen for result
+  db.ref(`rooms/${gameRoom}/state/lastResult`).once('value').then(snap => {
+    // Show waiting banner
+    const banner = document.getElementById('answeredBanner');
+    banner.style.display = 'block';
+    document.getElementById('answeredIcon').textContent = '⏳';
+    document.getElementById('answeredTitle').textContent = 'Resposta enviada!';
+    document.getElementById('answeredSub').textContent = 'Aguardando o professor avançar...';
+  });
+
+  // Listen for question result reveal
+  db.ref(`rooms/${gameRoom}/state/lastResult`).on('value', snap => {
+    const result = snap.val();
+    if(!result || result.questionIndex !== currentQId) return;
+
+    const btns = document.querySelectorAll('.option-btn');
+    btns.forEach(b => b.disabled = true);
+    // Reveal correct
+    if(btns[result.correctAnswer]) {
+      btns[result.correctAnswer].classList.add('reveal-correct');
+    }
+
+    const banner = document.getElementById('answeredBanner');
+    const winnerTeam = result.winnerTeam;
+
+    if(winnerTeam === myTeam) {
+      document.getElementById('answeredIcon').textContent = '🏆';
+      document.getElementById('answeredTitle').textContent = 'Seu time acertou primeiro!';
+      document.getElementById('answeredSub').textContent = '+1 ponto para o seu time!';
+    } else if(winnerTeam) {
+      document.getElementById('answeredIcon').textContent = '💙';
+      document.getElementById('answeredTitle').textContent = 'O outro time acertou!';
+      document.getElementById('answeredSub').textContent = 'Continue na próxima pergunta!';
+    } else {
+      document.getElementById('answeredIcon').textContent = '❌';
+      document.getElementById('answeredTitle').textContent = 'Ninguém acertou!';
+      document.getElementById('answeredSub').textContent = 'Próxima pergunta em breve...';
+    }
+    banner.style.display = 'block';
+  });
+}
+</script>
+</body>
+</html>
